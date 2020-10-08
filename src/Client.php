@@ -14,6 +14,7 @@ class Client
     protected const API_ENDPOINT = 'https://api.bol.com/retailer/';
     protected const API_DEMO_ENDPOINT = 'https://api.bol.com/retailer-demo/';
     protected const API_VERSION_CONTENT_TYPE = 'application/vnd.retailer.v3+json';
+    protected const API_VERSION_CONTENT_TYPE_V4 = 'application/vnd.retailer.v4+json';
 
     /** @var HttpInterface|null */
     private static $http;
@@ -23,6 +24,9 @@ class Client
 
     /** @var bool */
     private static $isDemoMode = false;
+
+    /** @var bool */
+    private static $isV4 = true;
 
     /** @var string|null */
     private static $userAgent = null;
@@ -103,6 +107,17 @@ class Client
     }
 
     /**
+     * Configure whether the demo endpoints or real endpoints should be used.
+     *
+     * @param bool $enabled Set to `true` to enable demo mode, `false` otherwise.
+     */
+    public static function setIsV4(bool $enabled = true): void
+    {
+        static::$http = null;
+        static::$isV4 = $enabled;
+    }
+
+    /**
      * Perform an API call.
      *
      * @param string $method The HTTP method used for the API call.
@@ -171,12 +186,13 @@ class Client
     {
         if (! static::$http instanceof HttpInterface) {
             $baseUri = static::$isDemoMode ? self::API_DEMO_ENDPOINT : self::API_ENDPOINT;
+            $apiVersion = static::$isV4 ? self::API_VERSION_CONTENT_TYPE_V4 : self::API_VERSION_CONTENT_TYPE;
 
             static::$http = new Http([
                 'base_uri' => $baseUri,
                 'headers' => [
-                    'Accept' => self::API_VERSION_CONTENT_TYPE,
-                    'Content-Type' => self::API_VERSION_CONTENT_TYPE,
+                    'Accept' => self::$isV4 ? self::API_VERSION_CONTENT_TYPE_V4 : self::API_VERSION_CONTENT_TYPE,
+                    'Content-Type' => self::$isV4 ? self::API_VERSION_CONTENT_TYPE_V4 : self::API_VERSION_CONTENT_TYPE,
                 ]
             ]);
         }
